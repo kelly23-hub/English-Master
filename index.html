@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0A0A1A" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="English Master" />
+  <title>English Master</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: 'Lato', sans-serif;
+      background: #0A0A1A;
+      color: #F0EAD6;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior: none;
+    }
+    #app { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* SCREENS */
+    .screen { display: none; flex-direction: column; height: 100%; }
+    .screen.active { display: flex; }
+
+    /* HOME */
+    #home { overflow-y: auto; background: linear-gradient(135deg, #0A0A1A 0%, #1A0A2E 50%, #0D1B2A 100%); }
+    .home-header {
+      padding: 48px 24px 20px;
+      text-align: center;
+      position: relative;
+    }
+    .home-glow {
+      position: absolute; top: 0; left: 0; right: 0; height: 200px;
+      background: radial-gradient(ellipse at 50% 0%, rgba(155,93,229,0.3) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .home-flag { font-size: 52px; margin-bottom: 10px; }
+    .home-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 34px; font-weight: 700;
+      background: linear-gradient(90deg, #F4A261, #9B5DE5, #2A9D8F);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      letter-spacing: 1px; margin-bottom: 6px;
+    }
+    .home-sub { color: #A89ECE; font-size: 14px; }
+    .stats-row { display: flex; justify-content: center; gap: 16px; margin-top: 20px; }
+    .stat-pill {
+      background: rgba(255,255,255,0.05);
+      border-radius: 20px; padding: 8px 18px;
+      font-size: 14px; display: flex; align-items: center; gap: 6px;
+    }
+    .stat-pill.xp { border: 1px solid rgba(244,162,97,0.4); color: #F4A261; font-weight: 700; }
+    .stat-pill.streak { border: 1px solid rgba(42,157,143,0.4); color: #2A9D8F; font-weight: 700; }
+
+    .home-content { padding: 0 20px 40px; }
+    .alex-card {
+      background: rgba(155,93,229,0.12);
+      border: 1px solid rgba(155,93,229,0.4);
+      border-radius: 16px; padding: 16px;
+      display: flex; align-items: center; gap: 14px;
+      cursor: pointer; margin-bottom: 24px;
+      transition: transform 0.15s;
+    }
+    .alex-card:active { transform: scale(0.98); }
+    .alex-icon { font-size: 30px; }
+    .alex-text-title { font-weight: 700; color: #C9B8F0; font-size: 15px; }
+    .alex-text-sub { font-size: 12px; color: #8A7AAE; margin-top: 2px; }
+    .alex-arrow { margin-left: auto; color: #9B5DE5; font-size: 22px; }
+
+    .section-title { font-size: 14px; color: #A89ECE; margin-bottom: 14px; letter-spacing: 0.5px; }
+
+    .module-card {
+      background: rgba(255,255,255,0.04);
+      border-radius: 16px; overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .module-header {
+      padding: 14px 18px;
+      display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .module-icon-wrap {
+      width: 42px; height: 42px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .module-title { font-weight: 700; font-size: 15px; }
+    .module-sub { font-size: 11px; color: #6A5A8E; margin-top: 2px; }
+
+    .lesson-row {
+      padding: 12px 18px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      cursor: pointer; transition: background 0.15s;
+    }
+    .lesson-row:last-child { border-bottom: none; }
+    .lesson-row:active { background: rgba(255,255,255,0.04); }
+    .lesson-badge {
+      font-size: 10px; padding: 3px 8px;
+      border-radius: 20px; white-space: nowrap; font-weight: 700;
+    }
+    .lesson-name { flex: 1; font-size: 13px; color: #D0C8E8; }
+    .lesson-arrow { color: #4A3A6E; font-size: 18px; }
+    .writing-btn {
+      width: 100%; padding: 13px; margin: 10px 0;
+      border-radius: 10px; font-family: 'Lato', sans-serif;
+      font-size: 14px; cursor: pointer; border: none;
+      transition: opacity 0.15s;
+    }
+    .writing-btn:active { opacity: 0.8; }
+
+    /* LESSON */
+    #lesson { background: linear-gradient(135deg, #0A0A1A 0%, #1A0A2E 100%); }
+    .lesson-header {
+      padding: 16px 18px;
+      display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      flex-shrink: 0;
+    }
+    .back-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 8px 12px;
+      color: #A89ECE; cursor: pointer;
+      font-family: 'Lato', sans-serif; font-size: 14px;
+    }
+    .lesson-header-info { flex: 1; }
+    .lesson-header-mod { font-size: 11px; margin-bottom: 2px; }
+    .lesson-header-topic { font-size: 15px; font-weight: 700; }
+
+    .progress-wrap { padding: 14px 18px; flex-shrink: 0; }
+    .progress-labels { display: flex; justify-content: space-between; font-size: 11px; color: #6A5A8E; margin-bottom: 6px; }
+    .progress-bar { height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 10px; transition: width 0.4s ease; }
+
+    .lesson-body { flex: 1; overflow-y: auto; padding: 0 18px 18px; }
+
+    .flashcard {
+      border-radius: 20px; padding: 32px 24px;
+      min-height: 180px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; cursor: pointer;
+      transition: all 0.3s ease; margin-bottom: 18px;
+    }
+    .flashcard-emoji { font-size: 38px; margin-bottom: 12px; }
+    .flashcard-word { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .flashcard-hint { font-size: 13px; color: #6A5A8E; }
+    .flashcard-flipped-text { font-size: 14px; color: #A89ECE; line-height: 1.5; }
+
+    .ask-alex-btn {
+      width: 100%; padding: 14px; border-radius: 12px;
+      font-family: 'Lato', sans-serif; font-size: 14px;
+      cursor: pointer; border: none; margin-bottom: 12px;
+      transition: opacity 0.15s;
+    }
+    .ask-alex-btn:active { opacity: 0.8; }
+
+    .nav-btns { display: flex; gap: 10px; }
+    .nav-btn {
+      flex: 1; padding: 13px; border-radius: 12px;
+      font-family: 'Lato', sans-serif; font-size: 14px;
+      cursor: pointer; border: none; transition: opacity 0.15s;
+    }
+    .nav-btn:active { opacity: 0.8; }
+    .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* QUIZ */
+    .quiz-card {
+      border-radius: 16px; padding: 22px;
+      margin-bottom: 16px;
+    }
+    .quiz-label { font-size: 11px; margin-bottom: 8px; font-weight: 700; letter-spacing: 1px; }
+    .quiz-word { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+    .quiz-instruction { font-size: 12px; color: #6A5A8E; }
+    .quiz-result {
+      background: rgba(42,157,143,0.1);
+      border: 1px solid rgba(42,157,143,0.3);
+      border-radius: 12px; padding: 16px;
+      font-size: 14px; color: #C0EDE8; line-height: 1.7;
+      white-space: pre-wrap; margin-bottom: 14px;
+    }
+    textarea {
+      width: 100%; padding: 13px 16px; border-radius: 12px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+      color: #F0EAD6; font-family: 'Lato', sans-serif; font-size: 15px;
+      resize: none; outline: none; margin-bottom: 12px; line-height: 1.4;
+    }
+    .full-btn {
+      width: 100%; padding: 14px; border-radius: 12px;
+      font-family: 'Lato', sans-serif; font-size: 15px; font-weight: 700;
+      cursor: pointer; border: none; transition: opacity 0.15s;
+    }
+    .full-btn:active { opacity: 0.8; }
+    .full-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* CHAT */
+    #chat { background: linear-gradient(135deg, #0A0A1A 0%, #1A0A2E 100%); }
+    .chat-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(0,0,0,0.3); flex-shrink: 0;
+    }
+    .alex-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: linear-gradient(135deg, #9B5DE5, #F4A261);
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+      flex-shrink: 0;
+    }
+    .chat-header-name { font-weight: 700; font-size: 15px; }
+    .chat-header-status { font-size: 11px; color: #2A9D8F; margin-top: 2px; }
+    .chat-topic {
+      margin-left: auto; font-size: 11px;
+      padding: 4px 10px; border-radius: 20px; white-space: nowrap; font-weight: 700;
+    }
+
+    .messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+    .msg-row { display: flex; gap: 8px; align-items: flex-start; }
+    .msg-row.user { flex-direction: row-reverse; }
+    .msg-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: linear-gradient(135deg, #9B5DE5, #F4A261);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; flex-shrink: 0;
+    }
+    .msg-bubble {
+      max-width: 82%; padding: 11px 15px;
+      font-size: 14px; line-height: 1.65; white-space: pre-wrap;
+    }
+    .msg-bubble.assistant {
+      background: rgba(255,255,255,0.06);
+      border-radius: 16px 16px 16px 4px; color: #E0D8F0;
+    }
+    .msg-bubble.user {
+      background: linear-gradient(135deg, #9B5DE5, #7B3DC5);
+      border-radius: 16px 16px 4px 16px; color: #fff;
+    }
+    .typing { color: #9B5DE5; font-size: 14px; }
+
+    .suggestions { padding: 0 14px 8px; display: flex; gap: 8px; overflow-x: auto; flex-shrink: 0; }
+    .suggestions::-webkit-scrollbar { display: none; }
+    .suggestion-btn {
+      flex-shrink: 0; padding: 8px 13px; border-radius: 20px;
+      background: rgba(155,93,229,0.15); border: 1px solid rgba(155,93,229,0.3);
+      color: #C9B8F0; cursor: pointer; font-size: 12px;
+      font-family: 'Lato', sans-serif; white-space: nowrap;
+    }
+
+    .chat-input-wrap {
+      padding: 10px 14px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      background: rgba(0,0,0,0.3);
+      display: flex; gap: 10px; align-items: flex-end; flex-shrink: 0;
+    }
+    .chat-input {
+      flex: 1; padding: 11px 15px; border-radius: 16px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+      color: #F0EAD6; font-family: 'Lato', sans-serif; font-size: 14px;
+      resize: none; outline: none; line-height: 1.4;
+      min-height: 44px; max-height: 110px;
+    }
+    .send-btn {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, #9B5DE5, #7B3DC5);
+      border: none; cursor: pointer; font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: opacity 0.15s;
+    }
+    .send-btn:disabled { background: rgba(155,93,229,0.2); cursor: not-allowed; }
+    .send-btn:active { opacity: 0.8; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME -->
+  <div id="home" class="screen active">
+    <div class="home-header">
+      <div class="home-glow"></div>
+      <div class="home-flag">🇬🇧</div>
+      <div class="home-title">English Master</div>
+      <div class="home-sub">De zéro à l'éloquence 🎯</div>
+      <div class="stats-row">
+        <div class="stat-pill xp">⚡ <span id="xp-display">0</span> XP</div>
+        <div class="stat-pill streak">🔥 <span id="streak-display">1</span> jour</div>
+      </div>
+    </div>
+    <div class="home-content">
+      <div class="alex-card" onclick="openFreeChat()">
+        <div class="alex-icon">🤖</div>
+        <div>
+          <div class="alex-text-title">Parle avec Alex, ton prof IA</div>
+          <div class="alex-text-sub">Pose n'importe quelle question sur l'anglais</div>
+        </div>
+        <div class="alex-arrow">→</div>
+      </div>
+      <div class="section-title">📚 Tes modules d'apprentissage</div>
+      <div id="modules-container"></div>
+    </div>
+  </div>
+
+  <!-- LESSON -->
+  <div id="lesson" class="screen">
+    <div class="lesson-header">
+      <button class="back-btn" onclick="goHome()">← Retour</button>
+      <div class="lesson-header-info">
+        <div class="lesson-header-mod" id="lesson-mod-name"></div>
+        <div class="lesson-header-topic" id="lesson-topic-name"></div>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-labels">
+        <span>Progression</span>
+        <span id="progress-label">1 / 5</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+    <div class="lesson-body" id="lesson-body"></div>
+  </div>
+
+  <!-- CHAT -->
+  <div id="chat" class="screen">
+    <div class="chat-header">
+      <button class="back-btn" onclick="goHome()" style="padding:6px 10px;">←</button>
+      <div class="alex-avatar">🤖</div>
+      <div>
+        <div class="chat-header-name">Alex</div>
+        <div class="chat-header-status">● Ton professeur IA</div>
+      </div>
+      <div class="chat-topic" id="chat-topic-badge"></div>
+    </div>
+    <div class="messages" id="messages"></div>
+    <div class="suggestions" id="suggestions"></div>
+    <div class="chat-input-wrap">
+      <textarea class="chat-input" id="chat-input" placeholder="Pose ta question à Alex..." rows="1"
+        oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()">→</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const MODULES = [
+  {
+    id: "vocab", icon: "📖", title: "Vocabulaire", subtitle: "Apprends les mots essentiels", color: "#F4A261",
+    lessons: [
+      { level: "Jour 1", topic: "Salutations & présentations", words: ["Hello", "Goodbye", "Please", "Thank you", "My name is..."] },
+      { level: "Jour 2", topic: "Nombres & couleurs", words: ["One", "Two", "Red", "Blue", "Green"] },
+      { level: "Jour 3", topic: "La famille", words: ["Mother", "Father", "Brother", "Sister", "Friend"] },
+    ]
+  },
+  {
+    id: "grammar", icon: "✍️", title: "Grammaire", subtitle: "Construis des phrases correctes", color: "#2A9D8F",
+    lessons: [
+      { level: "Base 1", topic: "Le verbe 'To Be'", words: ["I am", "You are", "He is", "She is", "We are"] },
+      { level: "Base 2", topic: "Le présent simple", words: ["I speak", "I eat", "I go", "I like", "I want"] },
+      { level: "Base 3", topic: "Les questions", words: ["What is...?", "Where is...?", "Who are you?", "How are you?", "Why?"] },
+    ]
+  },
+  {
+    id: "eloquence", icon: "🎭", title: "Éloquence", subtitle: "Parle avec classe & précision", color: "#9B5DE5",
+    lessons: [
+      { level: "Style 1", topic: "Mots de liaison élégants", words: ["Furthermore", "Nevertheless", "In addition", "However", "Therefore"] },
+      { level: "Style 2", topic: "Exprimer une opinion", words: ["In my opinion", "I believe that", "It seems to me", "I would argue", "From my perspective"] },
+      { level: "Style 3", topic: "Vocabulaire sophistiqué", words: ["Magnificent", "Eloquent", "Profound", "Remarkable", "Extraordinary"] },
+    ]
+  },
+  {
+    id: "writing", icon: "🖊️", title: "Expression", subtitle: "Écris & améliore ton style", color: "#E76F51", lessons: []
+  }
+];
+
+const SYSTEM_PROMPT = `Tu es ALEX, un professeur d'anglais expert et bienveillant. Tu aides un francophone débutant complet qui veut devenir éloquent en anglais.
+
+Règles :
+- Réponds TOUJOURS en français sauf pour les exemples en anglais
+- Sois encourageant, clair, et pédagogue
+- Pour chaque mot anglais, explique la prononciation en français entre parenthèses
+- Donne toujours des exemples concrets et simples
+- Si l'utilisateur écrit en anglais, corrige-le gentiment
+- Adapte-toi au niveau DÉBUTANT ABSOLU
+- Pour l'éloquence, explique pourquoi certains mots sont plus raffinés
+- Utilise des émojis pour rendre les réponses vivantes`;
+
+let xp = 0, streak = 1;
+let chatHistory = [];
+let chatLoading = false;
+let currentMod = null, currentLesson = null;
+let wordIndex = 0, flipped = false, quizMode = false;
+
+// RENDER MODULES
+function renderModules() {
+  const container = document.getElementById('modules-container');
+  container.innerHTML = '';
+  MODULES.forEach(mod => {
+    const card = document.createElement('div');
+    card.className = 'module-card';
+    card.style.border = `1px solid ${mod.color}30`;
+    let lessonsHTML = '';
+    if (mod.id === 'writing') {
+      lessonsHTML = `<div style="padding:10px 14px;">
+        <button class="writing-btn" style="background:${mod.color}15;border:1px solid ${mod.color}40;color:${mod.color};"
+          onclick="openWritingChat()">✍️ Commencer un exercice d'écriture</button>
+      </div>`;
+    } else {
+      mod.lessons.forEach((lesson, i) => {
+        const border = i < mod.lessons.length - 1 ? `border-bottom:1px solid ${mod.color}10;` : '';
+        lessonsHTML += `<div class="lesson-row" style="${border}" onclick="openLesson('${mod.id}',${i})">
+          <span class="lesson-badge" style="color:${mod.color};background:${mod.color}18;">${lesson.level}</span>
+          <span class="lesson-name">${lesson.topic}</span>
+          <span class="lesson-arrow">›</span>
+        </div>`;
+      });
+    }
+    card.innerHTML = `
+      <div class="module-header" style="border-bottom:1px solid ${mod.color}15;">
+        <div class="module-icon-wrap" style="background:${mod.color}20;">${mod.icon}</div>
+        <div>
+          <div class="module-title" style="color:${mod.color};">${mod.title}</div>
+          <div class="module-sub">${mod.subtitle}</div>
+        </div>
+      </div>
+      ${lessonsHTML}`;
+    container.appendChild(card);
+  });
+}
+
+function updateXP() {
+  document.getElementById('xp-display').textContent = xp;
+  document.getElementById('streak-display').textContent = streak;
+}
+
+// NAVIGATION
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goHome() { showScreen('home'); updateXP(); }
+
+// LESSON
+function openLesson(modId, lessonIdx) {
+  currentMod = MODULES.find(m => m.id === modId);
+  currentLesson = currentMod.lessons[lessonIdx];
+  wordIndex = 0; flipped = false; quizMode = false;
+  document.getElementById('lesson-mod-name').textContent = currentMod.title;
+  document.getElementById('lesson-mod-name').style.color = currentMod.color;
+  document.getElementById('lesson-topic-name').textContent = currentLesson.topic;
+  renderLesson();
+  showScreen('lesson');
+}
+
+function renderLesson() {
+  const body = document.getElementById('lesson-body');
+  const total = currentLesson.words.length;
+  document.getElementById('progress-label').textContent = `${wordIndex + 1} / ${total}`;
+  const fill = document.getElementById('progress-fill');
+  fill.style.width = `${((wordIndex + 1) / total) * 100}%`;
+  fill.style.background = `linear-gradient(90deg, ${currentMod.color}, ${currentMod.color}AA)`;
+
+  if (quizMode) {
+    renderQuiz(body);
+  } else {
+    renderFlashcard(body);
+  }
+}
+
+function renderFlashcard(body) {
+  const word = currentLesson.words[wordIndex];
+  const isLast = wordIndex === currentLesson.words.length - 1;
+  const c = currentMod.color;
+
+  body.innerHTML = `
+    <div class="flashcard" id="flashcard"
+      style="background:${flipped ? c+'22' : 'rgba(255,255,255,0.05)'};border:2px solid ${flipped ? c+'80' : c+'30'};"
+      onclick="toggleFlip()">
+      <div class="flashcard-emoji">${flipped ? '🇫🇷' : '🇬🇧'}</div>
+      ${flipped
+        ? `<div class="flashcard-flipped-text">Clique sur "Demander à Alex" pour la prononciation et des exemples !</div>
+           <div class="flashcard-hint" style="margin-top:10px;">Touche pour retourner</div>`
+        : `<div class="flashcard-word" style="color:${c};">${word}</div>
+           <div class="flashcard-hint">Touche pour voir la traduction</div>`
+      }
+    </div>
+    <button class="ask-alex-btn" style="background:${c}20;border:1px solid ${c}50;color:${c};"
+      onclick="openLessonChat()">🤖 Demander à Alex d'expliquer "${word}"</button>
+    <div class="nav-btns">
+      <button class="nav-btn" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#A89ECE;"
+        onclick="prevWord()" ${wordIndex === 0 ? 'disabled' : ''}>← Précédent</button>
+      <button class="nav-btn" style="background:${c};color:#0A0A1A;font-weight:700;"
+        onclick="nextWord()">${isLast ? '🎯 Quiz !' : 'Suivant →'}</button>
+    </div>`;
+}
+
+function renderQuiz(body) {
+  const word = currentLesson.words[wordIndex];
+  const c = currentMod.color;
+  const isLast = wordIndex === currentLesson.words.length - 1;
+
+  body.innerHTML = `
+    <div class="quiz-card" style="background:rgba(255,255,255,0.04);border:1px solid ${c}30;">
+      <div class="quiz-label" style="color:${c};">QUIZ — Mot ${wordIndex + 1}/${currentLesson.words.length}</div>
+      <div class="quiz-word">${word}</div>
+      <div class="quiz-instruction">Écris un exemple de phrase ou la traduction de ce mot</div>
+    </div>
+    <div id="quiz-result-area"></div>
+    <textarea id="quiz-answer" placeholder="Tape ta réponse ici..." rows="3"></textarea>
+    <button class="full-btn" id="quiz-check-btn" style="background:${c};color:#0A0A1A;"
+      onclick="checkQuiz()">✓ Vérifier ma réponse</button>`;
+}
+
+function toggleFlip() { flipped = !flipped; renderLesson(); }
+function prevWord() { if (wordIndex > 0) { wordIndex--; flipped = false; renderLesson(); } }
+function nextWord() {
+  if (wordIndex === currentLesson.words.length - 1) {
+    quizMode = true; wordIndex = 0; flipped = false; renderLesson();
+  } else {
+    wordIndex++; flipped = false; renderLesson();
+  }
+}
+
+async function checkQuiz() {
+  const answer = document.getElementById('quiz-answer')?.value?.trim();
+  if (!answer) return;
+  const btn = document.getElementById('quiz-check-btn');
+  btn.disabled = true; btn.textContent = 'Alex vérifie... ⏳';
+  const word = currentLesson.words[wordIndex];
+  const prompt = `L'apprenant devait donner un exemple ou la traduction de "${word}". Sa réponse est: "${answer}". Évalue sa réponse (sois encourageant), dis-lui si c'est correct et donne la bonne réponse avec explication simple.`;
+  const reply = await callClaude(prompt);
+  xp += 20; updateXP();
+
+  const resultArea = document.getElementById('quiz-result-area');
+  const c = currentMod.color;
+  const isLast = wordIndex === currentLesson.words.length - 1;
+  resultArea.innerHTML = `<div class="quiz-result">${reply}</div>`;
+  document.getElementById('quiz-answer').style.display = 'none';
+  btn.textContent = isLast ? '🏆 Terminer la leçon !' : 'Question suivante →';
+  btn.disabled = false;
+  btn.style.background = c;
+  btn.onclick = () => {
+    if (!isLast) { wordIndex++; renderLesson(); }
+    else { xp += 50; goHome(); }
+  };
+}
+
+function openLessonChat() {
+  const word = currentLesson.words[wordIndex];
+  const prompt = `Je suis en train d'apprendre le mot/expression "${word}" dans la leçon "${currentLesson.topic}". Explique-moi ce mot avec sa prononciation en français et donne-moi 2 exemples de phrases simples.`;
+  openChat(currentMod, currentLesson, prompt);
+}
+
+function openWritingChat() {
+  const mod = MODULES.find(m => m.id === 'writing');
+  const prompt = `Je veux pratiquer l'expression écrite en anglais. Je suis débutant complet. Donne-moi un exercice simple pour écrire une phrase en anglais.`;
+  openChat(mod, null, prompt);
+}
+
+function openFreeChat() {
+  openChat({ id: 'free', title: 'Conversation libre', icon: '💬', color: '#9B5DE5' }, null,
+    `Bonjour ! Je suis débutant complet en anglais et je veux devenir éloquent. Présente-toi et dis-moi comment tu vas m'aider aujourd'hui.`);
+}
+
+// CHAT
+async function openChat(mod, lesson, firstPrompt) {
+  currentMod = mod;
+  currentLesson = lesson;
+  chatHistory = [];
+  chatLoading = false;
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('chat-input').value = '';
+  const badge = document.getElementById('chat-topic-badge');
+  if (lesson) {
+    badge.textContent = lesson.topic;
+    badge.style.background = `${mod.color}20`;
+    badge.style.color = mod.color;
+  } else { badge.textContent = ''; }
+  document.getElementById('suggestions').innerHTML = '';
+  showScreen('chat');
+  await sendToAlex(firstPrompt, true);
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text || chatLoading) return;
+  input.value = ''; autoResize(input);
+  addMessage('user', text);
+  chatHistory.push({ role: 'user', content: text });
+  await sendToAlex(text, false);
+}
+
+async function sendToAlex(prompt, isFirst) {
+  chatLoading = true;
+  document.getElementById('send-btn').disabled = true;
+  if (!isFirst) document.getElementById('suggestions').innerHTML = '';
+
+  const typingId = addTyping();
+  let messages;
+  if (isFirst) {
+    messages = [{ role: 'user', content: prompt }];
+  } else {
+    messages = chatHistory.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
+    messages.push({ role: 'user', content: prompt });
+  }
+
+  const reply = await callClaude(prompt, isFirst ? [] : chatHistory.slice(0, -1));
+  removeTyping(typingId);
+  addMessage('assistant', reply);
+  chatHistory.push({ role: 'assistant', content: reply });
+  xp += 10; updateXP();
+  chatLoading = false;
+  document.getElementById('send-btn').disabled = false;
+
+  if (isFirst) showSuggestions();
+}
+
+function showSuggestions() {
+  const suggestions = ["Comment ça se prononce ?", "Donne-moi un exemple", "Teste-moi !", "Encore un mot ?"];
+  const container = document.getElementById('suggestions');
+  container.innerHTML = '';
+  suggestions.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'suggestion-btn';
+    btn.textContent = s;
+    btn.onclick = () => {
+      document.getElementById('chat-input').value = s;
+      sendMessage();
+    };
+    container.appendChild(btn);
+  });
+}
+
+async function callClaude(userMessage, history = []) {
+  try {
+    const messages = [...history.map(m => ({ role: m.role, content: m.content })), { role: 'user', content: userMessage }];
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, system: SYSTEM_PROMPT, messages })
+    });
+    const data = await res.json();
+    return data.content?.[0]?.text || "Désolé, je n'ai pas pu répondre.";
+  } catch (e) { return "Erreur de connexion. Vérifie ton internet."; }
+}
+
+let typingCount = 0;
+function addTyping() {
+  const id = 'typing-' + (++typingCount);
+  const container = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row'; row.id = id;
+  row.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble assistant typing">✨ En train d'écrire...</div>`;
+  container.appendChild(row);
+  container.scrollTop = container.scrollHeight;
+  return id;
+}
+function removeTyping(id) { document.getElementById(id)?.remove(); }
+
+function addMessage(role, content) {
+  const container = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = `msg-row ${role}`;
+  const bubble = `<div class="msg-bubble ${role}">${content}</div>`;
+  if (role === 'assistant') {
+    row.innerHTML = `<div class="msg-avatar">🤖</div>${bubble}`;
+  } else {
+    row.innerHTML = bubble;
+  }
+  container.appendChild(row);
+  container.scrollTop = container.scrollHeight;
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+// INIT
+renderModules();
+updateXP();
+</script>
+</body>
+</html>
